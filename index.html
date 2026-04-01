@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muhammad Suleman — Junior Project Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1117;
+    --bg3: #161b22;
+    --green: #00ff88;
+    --green-dim: #00cc6a;
+    --green-glow: rgba(0,255,136,0.15);
+    --blue: #58a6ff;
+    --orange: #f0883e;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --border: rgba(0,255,136,0.12);
+    --card-bg: rgba(22,27,34,0.8);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--green); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transition: transform 0.1s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--green); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transition: transform 0.25s cubic-bezier(.25,.46,.45,.94), opacity 0.3s;
+    opacity: 0.5;
+  }
+
+  #bg-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0; opacity: 0.4;
+    pointer-events: none;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(8,12,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green); font-size: 1.1rem; font-weight: 700;
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--text-muted); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.78rem; letter-spacing: 0.05em;
+    transition: color 0.2s; position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--green);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--green); }
+  .nav-links a:hover::after { width: 100%; }
+  .hamburger {
+    display: none; flex-direction: column; gap: 5px;
+    cursor: pointer; background: none; border: none; padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--green); border-radius: 2px; transition: all 0.3s;
+  }
+
+  section { position: relative; z-index: 1; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 0 clamp(1.5rem, 6vw, 8rem);
+    padding-top: 80px;
+  }
+  .hero-inner { max-width: 900px; }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--green);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 0.6s 0.3s forwards;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .hero-tag::before { content: ''; width: 32px; height: 1px; background: var(--green); }
+  .hero-name {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 800; line-height: 1.0; letter-spacing: -0.02em;
+    opacity: 0; animation: fadeUp 0.7s 0.5s forwards;
+  }
+  .hero-name .accent { color: var(--green); }
+  .hero-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: var(--text-muted);
+    margin: 1.2rem 0 2rem;
+    opacity: 0; animation: fadeUp 0.7s 0.7s forwards;
+  }
+  .hero-title .typing-cursor {
+    display: inline-block; width: 2px; height: 1.2em;
+    background: var(--green); margin-left: 2px;
+    animation: blink 1s step-end infinite; vertical-align: middle;
+  }
+  .hero-desc {
+    max-width: 560px;
+    color: var(--text-muted); line-height: 1.8; font-size: 1.05rem;
+    opacity: 0; animation: fadeUp 0.7s 0.9s forwards;
+  }
+  .hero-cta {
+    margin-top: 2.5rem;
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 1.1s forwards;
+  }
+  .btn {
+    padding: 0.85rem 2rem; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.25s; display: inline-flex;
+    align-items: center; gap: 0.5rem; letter-spacing: 0.05em;
+  }
+  .btn-primary { background: var(--green); color: #000; border: 2px solid var(--green); }
+  .btn-primary:hover { background: transparent; color: var(--green); box-shadow: 0 0 24px var(--green-glow); }
+  .btn-outline { background: transparent; color: var(--green); border: 2px solid rgba(0,255,136,0.3); }
+  .btn-outline:hover { border-color: var(--green); box-shadow: 0 0 20px var(--green-glow); }
+  .hero-stats {
+    margin-top: 4rem;
+    display: flex; gap: 3rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 1.3s forwards;
+  }
+  .stat-num {
+    font-size: 2rem; font-weight: 800; color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-label {
+    font-size: 0.78rem; color: var(--text-muted);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.2rem;
+  }
+  .scroll-ind {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    opacity: 0; animation: fadeIn 1s 2s forwards;
+  }
+  .scroll-ind span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--text-muted);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* SECTIONS */
+  .section-wrap { padding: 6rem clamp(1.5rem, 6vw, 8rem); }
+  .section-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 3.5rem; }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--green); letter-spacing: 0.2em;
+  }
+  .section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; }
+  .section-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--border), transparent); }
+
+  /* ABOUT */
+  #about { background: var(--bg2); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .about-text p { color: var(--text-muted); line-height: 1.9; font-size: 1.05rem; margin-bottom: 1.2rem; }
+  .about-text p strong { color: var(--green); font-weight: 600; }
+  .about-terminal {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .terminal-header { display: flex; gap: 6px; margin-bottom: 1.2rem; }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot:nth-child(1) { background: #ff5f57; }
+  .t-dot:nth-child(2) { background: #ffbd2e; }
+  .t-dot:nth-child(3) { background: #28c840; }
+  .terminal-line { font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.7; }
+  .terminal-line .prompt { color: var(--green); }
+  .terminal-line .cmd { color: var(--blue); }
+  .terminal-line .out { color: var(--text-muted); }
+  .terminal-line .val { color: var(--orange); }
+
+  /* SKILLS */
+  #skills { background: var(--bg); }
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+  .skill-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.8rem;
+    transition: all 0.35s; position: relative; overflow: hidden;
+  }
+  .skill-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, var(--green), transparent);
+    transform: scaleX(0); transform-origin: left; transition: transform 0.4s;
+  }
+  .skill-card:hover::before { transform: scaleX(1); }
+  .skill-card:hover { border-color: rgba(0,255,136,0.3); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+  .skill-card-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+  .skill-card-title {
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.2em; color: var(--green);
+    font-family: 'JetBrains Mono', monospace; margin-bottom: 1rem;
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .skill-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    padding: 0.3rem 0.75rem; border-radius: 3px;
+    background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.2);
+    color: var(--text); transition: all 0.2s;
+  }
+  .skill-tag:hover { background: rgba(0,255,136,0.15); color: var(--green); }
+
+  /* EXPERIENCE */
+  #experience { background: var(--bg2); }
+  .timeline { position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .timeline-item { padding-left: 70px; position: relative; margin-bottom: 3rem; }
+  .timeline-dot {
+    position: absolute; left: 16px; top: 8px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--green);
+    box-shadow: 0 0 12px var(--green-glow);
+  }
+  .timeline-dot::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--green); }
+  .timeline-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--green); letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+  .timeline-role { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .timeline-company { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.2rem; }
+  .timeline-points { list-style: none; }
+  .timeline-points li { font-size: 0.93rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 0.7rem; padding-left: 1.2rem; position: relative; }
+  .timeline-points li::before { content: '▶'; position: absolute; left: 0; color: var(--green); font-size: 0.5rem; top: 6px; }
+  .timeline-points li strong { color: var(--green); }
+
+  /* TOOLS */
+  #tools { background: var(--bg); }
+  .tools-block { margin-bottom: 2.5rem; }
+  .tools-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem; text-align: center; }
+  .tools-row { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+  .tool-pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    padding: 0.6rem 1.3rem; border-radius: 100px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    color: var(--text-muted); transition: all 0.25s;
+  }
+  .tool-pill:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 16px var(--green-glow); transform: translateY(-2px); }
+
+  /* CONTACT */
+  #contact { background: var(--bg2); text-align: center; }
+  .contact-wrap { max-width: 700px; margin: 0 auto; }
+  .contact-title { font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; margin-bottom: 1.2rem; }
+  .contact-title .accent { color: var(--green); }
+  .contact-sub { color: var(--text-muted); font-size: 1.05rem; line-height: 1.8; margin-bottom: 3rem; }
+  .contact-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem; }
+  .contact-chip {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 1.5rem; border: 1px solid var(--border);
+    border-radius: 6px; text-decoration: none;
+    color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 0.05em;
+    transition: all 0.25s; background: var(--bg3);
+  }
+  .contact-chip:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 20px var(--green-glow); transform: translateY(-2px); }
+  .contact-chip svg { flex-shrink: 0; }
+
+  footer {
+    background: var(--bg); border-top: 1px solid var(--border);
+    padding: 1.5rem clamp(1.5rem, 6vw, 8rem);
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem;
+    position: relative; z-index: 1;
+  }
+  .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
+  .footer-text span { color: var(--green); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 1; transform: scaleY(1); } 50% { opacity: 0.4; transform: scaleY(0.7); } }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; position: fixed; top: 60px; left: 0; right: 0; background: var(--bg2); flex-direction: column; padding: 1.5rem 2rem; gap: 1.2rem; border-bottom: 1px solid var(--border); }
+    .nav-links.open { display: flex; }
+    .hamburger { display: flex; }
+    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .timeline::before { left: 12px; }
+    .timeline-item { padding-left: 44px; }
+    .timeline-dot { left: 4px; }
+    .hero-stats { gap: 2rem; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+    
+  <a href="#hero" class="nav-logo">Muhammad <span>Suleman 
+    <br />
+    <small>Jr. Project Manager</small>
+  </span>
+</div>
+  </span></a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <p class="hero-tag">Bachelor of Science in Computer Science</p>
+    <h1 class="hero-name">Muhammad<br><span class="accent">Suleman</span></h1>
+    <p class="hero-title">
+      <span id="typed-text"></span><span class="typing-cursor"></span>
+    </p>
+    <p class="hero-desc">
+      Junior Project Manager with a strong foundation in IT project coordination, Agile methodologies, and cross-functional team collaboration. Driven by transparency, timely delivery, and continuous improvement.
+    </p>
+    <div class="hero-cta">
+      <a href="#experience" class="btn btn-primary">View Experience</a>
+      <a href="#contact" class="btn btn-primary">Get in touch →</a>
+       <a href="https://drive.google.com/file/d/1uITKQ17gT31KMAHdsT8wTfR3ts6vKmCr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Download my Resume</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num" id="stat1">2+</div>
+        <div class="stat-label">Roles & Internships</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat2">10+</div>
+        <div class="stat-label">Tools Mastered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat3">3</div>
+        <div class="stat-label">Methodologies Practiced</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <span class="section-num">01</span>
+      <h2 class="section-title">About Me</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>I'm a <strong>Junior Project Manager</strong> with hands-on experience in IT project coordination, Agile methodologies, SDLC fundamentals, and cross-functional team collaboration.</p>
+        <p>I've supported software development projects by tracking tasks, maintaining project documentation, coordinating with developers, QA engineers, and stakeholders, and assisting senior PMs in daily operations.</p>
+        <p>Adept at using <strong>Jira </strong> and <strong> Asana</strong> to ensure timely delivery, workflow transparency, and operational efficiency across teams.</p>
+        <p>Based in <strong>Rahim Yar Khan, Punjab, Pakistan</strong> — holding a Bachelor's in Computer Science from KFUEIT (2020–2024).</p>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="about-terminal">
+          <div class="terminal-header">
+            <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+          </div>
+          <div class="terminal-line"><span class="prompt">❯</span> <span class="cmd">whoami</span></div>
+          <div class="terminal-line"><span class="out">Muhammad Suleman</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem"><span class="prompt">❯</span> <span class="cmd">cat</span> <span class="val">role.txt</span></div>
+          <div class="terminal-line"><span class="out">Junior Project Manager</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem"><span class="prompt">❯</span> <span class="cmd">echo</span> <span class="val">$LOCATION</span></div>
+          <div class="terminal-line"><span class="out">Rahim Yar Khan, Pakistan</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem"><span class="prompt">❯</span> <span class="cmd">cat</span> <span class="val">education.txt</span></div>
+          <div class="terminal-line"><span class="out">BS Computer Science - KFUEIT (2020-2024)</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem"><span class="prompt">❯</span> <span class="cmd">cat</span> <span class="val">methodology.txt</span></div>
+          <div class="terminal-line"><span class="out">Agile &middot; Scrum &middot; Waterfall</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem"><span class="prompt">❯</span> <span class="cmd">echo</span> <span class="val">$STATUS</span></div>
+          <div class="terminal-line"><span class="out" style="color:var(--green)">✓ Open to Project Management  Opportunities</span></div>
+          <div class="terminal-line" style="margin-top:0.5rem; opacity:0.4"><span class="prompt">❯</span> <span style="animation: blink 1.2s step-end infinite; display:inline-block; width:8px; height:14px; background:var(--green); vertical-align:middle"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Core Skills</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card reveal reveal-delay-1">
+        <div class="skill-card-icon">📋</div>
+        <div class="skill-card-title">IT Project Coordination</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Task Tracking</span>
+          <span class="skill-tag">Timeline Management</span>
+          <span class="skill-tag">Milestone Planning</span>
+          <span class="skill-tag">Status Reporting</span>
+          <span class="skill-tag">Deliverable Management</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-2">
+        <div class="skill-card-icon">🔄</div>
+        <div class="skill-card-title">Agile & Methodologies</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Agile</span>
+          <span class="skill-tag">Scrum</span>
+          <span class="skill-tag">Waterfall</span>
+          <span class="skill-tag">Sprint Planning</span>
+          <span class="skill-tag">Daily Stand-ups</span>
+          <span class="skill-tag">SDLC & STLC</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-3">
+        <div class="skill-card-icon">🛠️</div>
+        <div class="skill-card-title">PM Tools</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Jira</span>
+          <span class="skill-tag">Asana</span>
+          <span class="skill-tag">Slack</span>
+          <span class="skill-tag">github</span>
+          <span class="skill-tag">Google Workspace</span>
+          <span class="skill-tag">HubSpot CRM</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-1">
+        <div class="skill-card-icon">📊</div>
+        <div class="skill-card-title">Documentation & Reporting</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Project Docs</span>
+          <span class="skill-tag">MS Word</span>
+          <span class="skill-tag">Google Docs</span>
+          <span class="skill-tag">Microsoft Excel</span>
+          <span class="skill-tag">Client Reports</span>
+          <span class="skill-tag">Confluence</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-2">
+        <div class="skill-card-icon">⚠️</div>
+        <div class="skill-card-title">Risk & Issue Management</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Risk Identification</span>
+          <span class="skill-tag">Risk Assessment</span>
+          <span class="skill-tag">Issue Tracking</span>
+          <span class="skill-tag">Problem Escalation</span>
+            <span class="skill-tag">Monitoring & Reporting</span>
+        </div>
+      </div>
+      <div class="skill-card reveal reveal-delay-3">
+        <div class="skill-card-icon">🤝</div>
+        <div class="skill-card-title">Soft Skills</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Stakeholder Communication</span>
+          <span class="skill-tag">Cross-team Collaboration</span>
+          <span class="skill-tag">Multitasking</span>
+          <span class="skill-tag">Attention to Detail</span>
+          <span class="skill-tag">Problem-solving</span>
+            <span class="skill-tag">Adaptability</span>
+            <span class="skill-tag">Time Management</span>
+            <span class="skill-tag">Teamwork</span>
+            <span class="skill-tag">Critical Thinking</span>
+            <span class="skill-tag">Leadership</span>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Experience</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="timeline">
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-meta">April 2025 — October 2025</div>
+        <div class="timeline-role">System Support Engineer</div>
+        <div class="timeline-company">Encore Solutions · Onsite, Islamabad</div>
+        <ul class="timeline-points">
+          <li>Coordinated technical tasks and service requests across multiple teams to ensure <strong>timely resolution and delivery</strong>.</li>
+          <li>Tracked task progress, priorities, and deliverables using <strong>structured trackers and status reports</strong>.</li>
+          <li>Monitored operational metrics to <strong>identify risks and escalate issues</strong> before they impacted project timelines.</li>
+          <li>Assisted in preparing <strong>technical documentation, SOPs, and client reports</strong>.</li>
+          <li>Supported management with <strong>workflow coordination and operational reporting</strong>, aligning team activities with project objectives.</li>
+        </ul>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-meta">September 2024 — April 2025</div>
+        <div class="timeline-role">QA & CRM Associate</div>
+        <div class="timeline-company">Learners.ai LLC USA · Remote</div>
+        <ul class="timeline-points">
+          <li>Coordinated QA activities across <strong>multiple testing cycles</strong> to keep projects on schedule.</li>
+          <li>Maintained <strong>testing documentation, defect logs, and project status reports</strong> for stakeholder visibility.</li>
+          <li>Participated in project meetings, documented <strong>action items, and tracked follow-ups</strong> to closure.</li>
+          <li>Gained practical exposure to <strong>Agile workflows</strong> in a live collaborative development environment.</li>
+          <li>Tracked issues, dependencies, and resolutions to ensure <strong>full stakeholder alignment</strong>.</li>
+          <li>Supported <strong>HubSpot CRM</strong> configuration, data migration, task tracking, and reporting pipelines.</li>
+        </ul>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-meta">June 2024 — August 2024</div>
+        <div class="timeline-role">Python Intern</div>
+        <div class="timeline-company">BitBuild · Remote</div>
+        <ul class="timeline-points">
+          <li>Assisted project teams with <strong>task execution, updates, and progress tracking</strong> against timelines.</li>
+          <li>Reported <strong>status updates to senior team members</strong> and flagged blockers proactively.</li>
+          <li>Collaborated with developers using <strong>GitHub for version control and team coordination</strong>.</li>
+          <li>Supported automation scripts, API testing, and <strong>technical documentation</strong>.</li>
+          <li>Deepened understanding of <strong>software development workflows and SDLC</strong> in a real project context.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS & METHODS -->
+<section id="tools">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Tools & Methods</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="reveal">
+      <div class="tools-block">
+        <div class="tools-label">Project Management Tools</div>
+        <div class="tools-row">
+          <span class="tool-pill">Jira</span>
+          <span class="tool-pill">Asana</span>
+          <span class="tool-pill">Confluence</span>
+          <span class="tool-pill">Slack</span>
+          <span class="tool-pill">Google Workspace</span>
+          <span class="tool-pill">GitHub</span>
+          <span class="tool-pill">Microsoft Teams</span>
+          <span class="tool-pill">Microsoft Excel</span>
+          <span class="tool-pill">HubSpot CRM</span>
+        </div>
+      </div>
+      <div class="tools-block">
+        <div class="tools-label">Methodologies & Frameworks</div>
+        <div class="tools-row">
+          <span class="tool-pill">Agile</span>
+          <span class="tool-pill">Scrum</span>
+          <span class="tool-pill">Waterfall</span>
+          <span class="tool-pill">Sprint Planning</span>
+          <span class="tool-pill">Daily Stand-ups</span>
+          <span class="tool-pill">Project Lifecycle</span>
+          <span class="tool-pill">SDLC & STLC</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-wrap">
+    <div class="contact-wrap reveal">
+      <div class="section-num" style="text-align:center; display:block; margin-bottom:1rem">05</div>
+      <h2 class="contact-title">Let's <span class="accent">Connect</span></h2>
+      <p class="contact-sub">Open to Junior Project Manager, IT Coordinator, and Scrum roles. Let's talk about how I can help your team deliver projects on time and on scope.</p>
+      <div class="contact-links">
+        <a href="mailto:muhammadsulemanch81@gmail.com" class="contact-chip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+          Email Me
+        </a>
+        <a href="https://wa.me/923361579791" target="_blank" class="contact-chip">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .82h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+  </svg>
+  Call / WhatsApp
+</a>
+        </div>
+      <a href="#hero" class="btn btn-outline" style="margin: 0 auto; display:inline-flex">↑ Back to top</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-text">© Muhammad Suleman. All rights reserved · <span>2026</span>  </div>
+  <div class="footer-text">Rahim Yar Khan, Punjab, Pakistan <span></div>
+</footer>
+
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cursor.style.left = mx-6+'px'; cursor.style.top = my-6+'px'; });
+  (function animRing() { rx += (mx-rx)*0.12; ry += (my-ry)*0.12; ring.style.left = rx-18+'px'; ring.style.top = ry-18+'px'; requestAnimationFrame(animRing); })();
+  document.querySelectorAll('a,button,.skill-card,.tool-pill').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.transform='scale(2)'; ring.style.transform='scale(1.5)'; ring.style.opacity='0.2'; });
+    el.addEventListener('mouseleave', () => { cursor.style.transform='scale(1)'; ring.style.transform='scale(1)'; ring.style.opacity='0.5'; });
+  });
+
+  // Typing
+  const titles = ['Planning • Scheduling • Coordination','Managing Tasks, Timelines & Teams','Turning Plans into Action','Focused on Delivery & Deadlines' , 'Ensuring Project Success' ,  'Driving Results with Agile & Scrum', 'Facilitating Team Collaboration', 'Keeping Projects on Track', 'Your Next Project Manager'];
+  let ti=0,ci=0,del=false;
+  const typEl = document.getElementById('typed-text');
+  function type() {
+    const cur = titles[ti];
+    if (!del) { typEl.textContent = cur.slice(0,++ci); if(ci===cur.length){del=true;setTimeout(type,1800);return;} }
+    else { typEl.textContent = cur.slice(0,--ci); if(ci===0){del=false;ti=(ti+1)%titles.length;} }
+    setTimeout(type, del?45:80);
+  }
+  setTimeout(type,1500);
+
+  // Canvas particles
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  const particles = Array.from({length:80},()=>({x:Math.random()*2000,y:Math.random()*2000,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5,a:Math.random()}));
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,136,${p.a*.6})`;ctx.fill();
+    });
+    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(0,255,136,${(1-d/120)*.12})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(draw);
+  })();
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+
+  // Counters
+  function animCount(el,target,suffix=''){
+    let start=0;
+    (function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/1800,1),e=1-Math.pow(1-p,3);el.textContent=Math.floor(e*target)+suffix;if(p<1)requestAnimationFrame(step);})(performance.now());
+  }
+  new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){
+      animCount(document.getElementById('stat1'),3,'+');
+      animCount(document.getElementById('stat2'),4,'+');
+      animCount(document.getElementById('stat3'),3,'+');
+    }
+  }),{threshold:0.3}).observe(document.querySelector('.hero-stats'));
+</script>
+</body>
+</html>
